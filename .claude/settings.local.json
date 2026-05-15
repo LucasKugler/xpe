@@ -2,6 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(uv run pytest *)",
+      "Bash(uv run xpe *)",
+      "Bash(uv run xte *)",
       "Bash(xpe *)"
     ]
   }
