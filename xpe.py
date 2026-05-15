@@ -21,6 +21,11 @@ def run():
         nargs="?",
         help="File to parse (reads from stdin if not provided or when piping)",
     )
+    parser.add_argument(
+        "--html",
+        action="store_true",
+        help="Parse as HTML instead of XML",
+    )
     args = parser.parse_args()
 
     xpath = args.xpath.strip("\"'")
@@ -56,8 +61,8 @@ def run():
 
     bytelines.close()
 
-    htmlparser = etree.HTMLParser()
-    tree = etree.fromstring(html, htmlparser)
+    parser_obj = etree.HTMLParser() if args.html else None
+    tree = etree.fromstring(html, parser_obj)
 
     try:
         xpaths = tree.xpath(xpath)

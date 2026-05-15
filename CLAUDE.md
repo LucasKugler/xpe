@@ -14,9 +14,11 @@ Both read from stdin or files and output results to stdout.
 ## Usage
 
 ```bash
-# xpe - XPath expressions
+# xpe - XPath expressions (XML by default)
 uv run xpe '//title/text()'
-echo "<html><title>Test</title></html>" | uv run xpe '//title/text()'
+echo "<root><item>Test</item></root>" | uv run xpe '//item/text()'
+# Use --html for HTML files
+echo "<html><title>Test</title></html>" | uv run xpe --html '//title/text()'
 uv run xpe '//a/@href' somefile.html
 
 # xte - XSLT transformations
