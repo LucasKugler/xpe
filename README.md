@@ -2,15 +2,21 @@
 
 *Finally, a commandline xpath tool that is easy to use.*
 
+> **Note:** This is a fork of the original [charmparticle/xpe](https://github.com/charmparticle/xpe) project, maintained here at LucasKugler/xpe.
+
 ***What is this?***
 
 xpe is a commandline xpath parser. Pipe in some textual data, supply it with an xpath expression, and it will dump the result to stdout. Perfect for shellscripting. For example:
-    
-    curl -s example.com | xpe "//h1/text()"
 
-    Example Domain
-    
-Alternatively, xpe can query a file for xpath expressions like so:
+    echo "<root><item>Test</item></root>" | xpe '//item/text()'
+    # Output: Test
+
+xpe parses XML by default. For HTML files, use the `--html` flag:
+
+    echo "<html><body><h1>Hello</h1></body></html>" | xpe --html '//h1/text()'
+    # Output: Hello
+
+Alternatively, xpe can query a file for xpath expressions:
 
     xpe '//a/@href' somefile.htm
 
@@ -21,12 +27,11 @@ The order doesn't matter, so the following is also valid:
 
 ***How to install***
 
-    sudo pip3 install xpe
+This is a Python project managed with [uv](https://github.com/astral-sh/uv):
 
-***How to upgrade***
+    pip install uv
+    uv pip install xpe
 
-    sudo pip3 install -U xpe
+Or run directly with uv:
 
-**Lately, I've been using xidel instead because it is faster. I created a gist for how to get xidel to act like xpe**
-
-https://gist.github.com/charmparticle/3253f75880d8daf546e5fb2dd4437213
+    uv run xpe '//xpath' input.xml
