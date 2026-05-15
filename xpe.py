@@ -1,95 +1,75 @@
 #!/usr/bin/env python3
 
-from sys import stdin, argv
-from os import path
+import argparse
+from sys import stdin
 
 from lxml import etree
 from chardet import detect
 
 
-html = ""
-i = 0
+def run():
+    parser = argparse.ArgumentParser(
+        description="A commandline xpath tool that is easy to use",
+        prog="xpe",
+    )
+    parser.add_argument(
+        "xpath",
+        help="XPath expression to evaluate",
+    )
+    parser.add_argument(
+        "file",
+        nargs="?",
+        help="File to parse (reads from stdin if not provided or when piping)",
+    )
+    args = parser.parse_args()
 
+    xpath = args.xpath.strip("\"'")
+    if not xpath or xpath[0] not in "/(":
+        parser.error("XPath expression must start with '/' or '('")
 
-def show_help():
-    helpstr = """
-xpe takes data from stdin, and supplies the result of an xpath selection to stdout.
-For example (assuming xpe is in your $PATH):
+    target = args.file
 
-curl -s example.com | xpe '//title/text()'
-(result should be 'Example Domain')
+    if stdin.isatty() and target is None:
+        parser.error("Either provide a file or pipe data to stdin")
 
-Alternatively, xpe can read a file supplied to it, ie:
-
-xpe '//a/@href' somefile.html
-or
-xpe somefile.html '//a/@href'
-
-xpe will print this help message if it is invoked improperly"""
-    print(helpstr)
-    exit(1)
-
-
-if stdin.isatty():
-    target = 'file'
-
-    if len(argv[1:]) == 2:
-        for n in range(1, 3):
-            arg = argv[n]
-            if path.exists(path.expanduser(arg)):
-                target = path.expanduser(arg)
-            else:
-                xpath = arg
-
-    if target == 'file':
-        show_help()
-else:
-    target = 'stdin'
-
-    if len(argv[1:]) == 0:
-        show_help()
-
-    xpath = argv[1]
-
-xpr = xpath.strip("\"\'")
-if len(xpr) == 0 or not xpr[0] in '/(':
-    show_help()
-
-if target == 'stdin':
-    bytelines = stdin.buffer
-else:
-    bytelines = open(target, 'rb')
-
-for bline in bytelines:
-    if i == 0:
-        try:
-            if 'encoding=' in bline.decode():
-                continue
-        except Exception:
-            pass
-
-    # guess the encoding of the input so that I can use it
-    guess = detect(bline)
-    if guess['encoding'] is None:
-        pass
+    if target:
+        bytelines = open(target, "rb")
     else:
-        line = bline.decode(guess['encoding'], errors='ignore')
-        html = html + line
+        bytelines = stdin.buffer
 
-    i = i + 1
+    html = ""
+    i = 0
+    for bline in bytelines:
+        if i == 0:
+            try:
+                if "encoding=" in bline.decode():
+                    continue
+            except Exception:
+                pass
 
-bytelines.close()
+        guess = detect(bline)
+        if guess["encoding"] is not None:
+            line = bline.decode(guess["encoding"], errors="ignore")
+            html += line
 
-htmlparser = etree.HTMLParser()
-tree = etree.fromstring(html, htmlparser)
+        i += 1
 
-try:
-    xpaths = tree.xpath(xpath)
-except etree.XPathEvalError:
-    show_help()
+    bytelines.close()
 
-for xpath in xpaths:
-    if type(xpath) == etree._ElementUnicodeResult:
-        print(xpath)
-    else:
-        print(xpath.text)
+    htmlparser = etree.HTMLParser()
+    tree = etree.fromstring(html, htmlparser)
+
+    try:
+        xpaths = tree.xpath(xpath)
+    except etree.XPathEvalError:
+        parser.error("Invalid XPath expression")
+
+    for xpath in xpaths:
+        if type(xpath) == etree._ElementUnicodeResult:
+            print(xpath)
+        else:
+            print(xpath.text)
+
+
+if __name__ == "__main__":
+    run()
