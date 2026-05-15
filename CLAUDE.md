@@ -4,26 +4,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-xpe is a command-line XPath parser. It reads XML/HTML from stdin or a file and applies an XPath expression, printing results to stdout.
+Two command-line XML/HTML tools:
+
+- **xpe** - XPath parser: extracts data using XPath expressions
+- **xte** - XSLT transformer: transforms XML using XSLT stylesheets
+
+Both read from stdin or files and output results to stdout.
 
 ## Usage
 
 ```bash
-# With uv (recommended for development)
+# xpe - XPath expressions
 uv run xpe '//title/text()'
 echo "<html><title>Test</title></html>" | uv run xpe '//title/text()'
-
-# With file
 uv run xpe '//a/@href' somefile.html
 
-# After installation
-xpe '//title/text()'
-```
-
-## Running
-
-```bash
-uv run xpe '//xpath' [file]
+# xte - XSLT transformations
+uv run xte stylesheet.xsl input.xml
+cat input.xml | uv run xte stylesheet.xsl
+# Inline stylesheet with -s flag
+cat input.xml | uv run xte -s '<?xml version="1.0"?><xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"><xsl:template match="/"><out><xsl:value-of select="//item"/></out></xsl:template></xsl:stylesheet>'
 ```
 
 Requires: `lxml`, `chardet`
@@ -43,9 +43,9 @@ uv run pytest test_xpe.py::TestXPathSelection::test_text_selection  # run single
 
 ## Architecture
 
-Single-file script (`xpe.py`). Key flow:
-1. Parse arguments with argparse (xpath expression, optional file)
+`xpe.py` and `xte.py` share similar structure:
+1. Parse arguments with argparse (stylesheet/path, optional input file)
 2. Detect input source (stdin vs file)
 3. Read input and detect encoding via chardet
-4. Parse HTML with lxml's HTMLParser
-5. Execute XPath and print results (handles both text and element results)
+4. Parse XML/HTML with lxml
+5. Transform (xte) or query (xpe) and print results
