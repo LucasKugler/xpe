@@ -1,10 +1,10 @@
 # xpe
 
-*Finally, a commandline xpath tool that is easy to use.*
+*Finally, commandline XML tools that are easy to use.*
 
 > **Note:** This is a fork of the original [charmparticle/xpe](https://github.com/charmparticle/xpe) project, maintained here at LucasKugler/xpe.
 
-***What is this?***
+## xpe - XPath Parser
 
 xpe is a commandline xpath parser. Pipe in some textual data, supply it with an xpath expression, and it will dump the result to stdout. Perfect for shellscripting. For example:
 
@@ -20,12 +20,31 @@ Alternatively, xpe can query a file for xpath expressions:
 
     xpe '//a/@href' somefile.htm
 
-The order doesn't matter, so the following is also valid:
+## xte - XSLT Transformer
 
-    xpe somefile.htm '//a/@href'
+xte transforms XML using XSLT stylesheets:
 
+    xte stylesheet.xsl input.xml
+    cat input.xml | xte stylesheet.xsl
 
-***How to install***
+Inline stylesheet with `-s` flag:
+
+    cat input.xml | xte -s '<?xml version="1.0"?><xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"><xsl:template match="/"><out><xsl:value-of select="//item"/></out></xsl:template></xsl:stylesheet>'
+
+## xve - XSD Validator
+
+xve validates XML against XSD schemas:
+
+    xve schema.xsd input.xml
+    cat input.xml | xve schema.xsd
+
+Inline schema with `-s` flag:
+
+    echo '<root><item>Test</item></root>' | xve -s '<?xml version="1.0"?><xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"><xs:element name="root"/></xs:schema>'
+
+On success, no output. On failure, validation errors are printed to stderr.
+
+## How to install
 
 This is a Python project managed with [uv](https://github.com/astral-sh/uv):
 
@@ -35,3 +54,5 @@ This is a Python project managed with [uv](https://github.com/astral-sh/uv):
 Or run directly with uv:
 
     uv run xpe '//xpath' input.xml
+    uv run xte stylesheet.xsl input.xml
+    uv run xve schema.xsd input.xml
