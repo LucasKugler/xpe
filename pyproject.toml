@@ -15,7 +15,7 @@ xpe = "xpe:run"
 xte = "xte:run"
 
 [tool.hatch.build.targets.wheel]
-packages = ["xpe.py", "xte.py"]
+packages = ["xpe.py", "xte.py", "xve.py"]
 
 [build-system]
 requires = ["hatchling"]
