@@ -29,8 +29,8 @@ def run():
     args = parser.parse_args()
 
     xpath = args.xpath.strip("\"'")
-    if not xpath or xpath[0] not in "/(":
-        parser.error("XPath expression must start with '/' or '('")
+    if not xpath:
+        parser.error("XPath expression cannot be empty")
 
     target = args.file
 
@@ -71,9 +71,9 @@ def run():
 
     for xpath in xpaths:
         if type(xpath) == etree._ElementUnicodeResult:
-            print(xpath)
+            print(xpath.rstrip())
         else:
-            print(xpath.text)
+            print(etree.tostring(xpath, encoding="unicode", ).rstrip())
 
 
 if __name__ == "__main__":
