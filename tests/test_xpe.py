@@ -70,9 +70,10 @@ class TestArgumentValidation:
         result = run_xpe("//[invalid", "<html></html>")
         assert result.returncode == 2
 
-    def test_xpath_must_start_with_slash_or_paren(self):
+    def test_relative_xpath(self):
         result = run_xpe("title", "<html><title>Test</title></html>")
-        assert result.returncode == 2
+        assert result.returncode == 0
+        assert "<title>Test</title>" in result.stdout
 
     def test_no_input(self):
         result = subprocess.run(XPE + ["//title"], capture_output=True)
