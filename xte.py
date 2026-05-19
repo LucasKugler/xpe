@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 
 import argparse
-from sys import stdin, exit
+from sys import stdin
 
 from lxml import etree
-from chardet import detect
 
 
 def run():
@@ -59,32 +58,14 @@ def run():
 
     # Read input
     if args.file:
-        bytelines = open(args.file, "rb")
+        with open(args.file, "rb") as f:
+            raw = f.read()
     else:
-        bytelines = stdin.buffer
-
-    xml_content = ""
-    i = 0
-    for bline in bytelines:
-        if i == 0:
-            try:
-                if "encoding=" in bline.decode():
-                    continue
-            except Exception:
-                pass
-
-        guess = detect(bline)
-        if guess["encoding"] is not None:
-            line = bline.decode(guess["encoding"], errors="ignore")
-            xml_content += line
-
-        i += 1
-
-    bytelines.close()
+        raw = stdin.buffer.read()
 
     # Parse and transform
     try:
-        doc = etree.fromstring(xml_content.encode())
+        doc = etree.fromstring(raw)
     except etree.XMLSyntaxError as e:
         parser.error(f"Invalid XML: {e}")
 
