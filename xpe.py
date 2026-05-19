@@ -4,7 +4,6 @@ import argparse
 from sys import stdin
 
 from lxml import etree
-from chardet import detect
 
 
 def run():
@@ -32,37 +31,17 @@ def run():
     if not xpath:
         parser.error("XPath expression cannot be empty")
 
-    target = args.file
-
-    if stdin.isatty() and target is None:
+    if stdin.isatty() and args.file is None:
         parser.error("Either provide a file or pipe data to stdin")
 
-    if target:
-        bytelines = open(target, "rb")
+    if args.file:
+        with open(args.file, "rb") as f:
+            raw = f.read()
     else:
-        bytelines = stdin.buffer
-
-    html = ""
-    i = 0
-    for bline in bytelines:
-        if i == 0:
-            try:
-                if "encoding=" in bline.decode():
-                    continue
-            except Exception:
-                pass
-
-        guess = detect(bline)
-        if guess["encoding"] is not None:
-            line = bline.decode(guess["encoding"], errors="ignore")
-            html += line
-
-        i += 1
-
-    bytelines.close()
+        raw = stdin.buffer.read()
 
     parser_obj = etree.HTMLParser() if args.html else None
-    tree = etree.fromstring(html, parser_obj)
+    tree = etree.fromstring(raw, parser_obj)
 
     try:
         xpaths = tree.xpath(xpath)
