@@ -2,8 +2,61 @@
 
 import argparse
 from sys import stdin
+from typing import Optional
 
 from lxml import etree
+
+
+def transform_xml(xml_data: bytes, stylesheet_content: bytes, xsl_params: Optional[dict] = None) -> str:
+    """
+    Transform XML data using an XSLT stylesheet.
+
+    Args:
+        xml_data: Raw bytes of the XML document
+        stylesheet_content: Raw bytes of the XSLT stylesheet
+        xsl_params: Dictionary of XSLT parameters
+
+    Returns:
+        Transformed XML as string
+    """
+    try:
+        transform = etree.XSLT(etree.XML(stylesheet_content))
+    except etree.XMLSyntaxError as e:
+        raise ValueError(f"Invalid XSLT stylesheet: {e}")
+
+    try:
+        doc = etree.fromstring(xml_data)
+    except etree.XMLSyntaxError as e:
+        raise ValueError(f"Invalid XML: {e}")
+
+    if xsl_params:
+        try:
+            result = transform(doc, **xsl_params)
+        except etree.XSLTApplyError as e:
+            raise ValueError(f"XSLT transformation failed: {e}")
+    else:
+        result = transform(doc)
+
+    return str(result)
+
+
+def parse_xslt_params(param_list: list) -> dict:
+    """
+    Parse XSLT parameters from command-line format.
+
+    Args:
+        param_list: List of "NAME=VALUE" strings
+
+    Returns:
+        Dictionary of XSLT parameters
+    """
+    xsl_params = {}
+    if param_list:
+        for p in param_list:
+            if "=" in p:
+                name, value = p.split("=", 1)
+                xsl_params[name] = etree.XSLT.strparam(value)
+    return xsl_params
 
 
 def run():
@@ -48,11 +101,6 @@ def run():
         except PermissionError:
             parser.error(f"Cannot read stylesheet file: {args.stylesheet}")
 
-    try:
-        transform = etree.XSLT(etree.XML(stylesheet_content))
-    except etree.XMLSyntaxError as e:
-        parser.error(f"Invalid XSLT stylesheet: {e}")
-
     if stdin.isatty() and args.file is None:
         parser.error("Either provide a file or pipe data to stdin")
 
@@ -63,26 +111,14 @@ def run():
     else:
         raw = stdin.buffer.read()
 
-    # Parse and transform
-    try:
-        doc = etree.fromstring(raw)
-    except etree.XMLSyntaxError as e:
-        parser.error(f"Invalid XML: {e}")
-
-    xsl_params = {}
-    if args.param:
-        for p in args.param:
-            if "=" in p:
-                name, value = p.split("=", 1)
-                xsl_params[name] = etree.XSLT.strparam(value)
+    xsl_params = parse_xslt_params(args.param)
 
     try:
-        result = transform(doc, **xsl_params)
-    except etree.XSLTApplyError as e:
-        parser.error(f"XSLT transformation failed: {e}")
+        result = transform_xml(raw, stylesheet_content, xsl_params)
+    except ValueError as e:
+        parser.error(str(e))
 
-    # Output result
-    print(str(result))
+    print(result)
 
 
 if __name__ == "__main__":
