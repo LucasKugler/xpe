@@ -5,6 +5,8 @@ from sys import stdin
 
 from lxml import etree
 
+from common import read_input
+
 
 def evaluate_xpath(xpath_expr: str, xml_data: bytes, html: bool = False) -> list:
     """
@@ -73,11 +75,7 @@ def run():
     if stdin.isatty() and args.file is None:
         parser.error("Either provide a file or pipe data to stdin")
 
-    if args.file:
-        with open(args.file, "rb") as f:
-            raw = f.read()
-    else:
-        raw = stdin.buffer.read()
+    raw = read_input(stdin, args.file)
 
     try:
         xpaths = evaluate_xpath(xpath, raw, args.html)

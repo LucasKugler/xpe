@@ -2,7 +2,15 @@
 
 ## Unreleased
 
+### Added
+- Created `common.py` module with shared utilities (`read_input`, `read_content_or_file`)
+- Added unit tests for `common.py` in `tests/test_common.py`
+
 ### Changed
+- Refactored `xpe` to use shared utilities from `common.py`
+- Refactored `xte` to use shared utilities from `common.py`
+- Refactored `xve` to use shared utilities from `common.py`
+- Removed `check_input_required` abstraction (inline checks are clearer)
 - Refactored `xpe` to expose core logic as importable functions (`evaluate_xpath`, `format_result`)
 - Refactored `xte` to expose core logic as importable functions (`transform_xml`, `parse_xslt_params`)
 - Refactored `xve` to expose core logic as importable functions (`load_schema`, `validate_xml`)

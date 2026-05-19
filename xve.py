@@ -6,6 +6,8 @@ from typing import Optional
 
 from lxml import etree
 
+from common import read_input, read_content_or_file
+
 
 def load_schema(schema_content: bytes) -> etree.XMLSchema:
     """
@@ -75,16 +77,9 @@ def run():
     )
     args = parser.parse_args()
 
-    if args.inline_schema:
-        schema_content = args.schema.encode()
-    else:
-        try:
-            with open(args.schema, "rb") as f:
-                schema_content = f.read()
-        except FileNotFoundError:
-            parser.error(f"Schema file not found: {args.schema}")
-        except PermissionError:
-            parser.error(f"Cannot read schema file: {args.schema}")
+    schema_content = read_content_or_file(
+        parser, args.schema, args.schema, args.inline_schema, "Schema"
+    )
 
     try:
         schema = load_schema(schema_content)
@@ -94,11 +89,7 @@ def run():
     if stdin.isatty() and args.file is None:
         parser.error("Either provide a file or pipe data to stdin")
 
-    if args.file:
-        with open(args.file, "rb") as f:
-            raw = f.read()
-    else:
-        raw = stdin.buffer.read()
+    raw = read_input(stdin, args.file)
 
     try:
         validate_xml(raw, schema)

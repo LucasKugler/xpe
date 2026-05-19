@@ -6,6 +6,8 @@ from typing import Optional
 
 from lxml import etree
 
+from common import read_input, read_content_or_file
+
 
 def transform_xml(xml_data: bytes, stylesheet_content: bytes, xsl_params: Optional[dict] = None) -> str:
     """
@@ -89,27 +91,14 @@ def run():
     )
     args = parser.parse_args()
 
-    # Read and validate stylesheet first
-    if args.inline_stylesheet:
-        stylesheet_content = args.stylesheet.encode()
-    else:
-        try:
-            with open(args.stylesheet, "rb") as f:
-                stylesheet_content = f.read()
-        except FileNotFoundError:
-            parser.error(f"Stylesheet file not found: {args.stylesheet}")
-        except PermissionError:
-            parser.error(f"Cannot read stylesheet file: {args.stylesheet}")
+    stylesheet_content = read_content_or_file(
+        parser, args.stylesheet, args.stylesheet, args.inline_stylesheet, "Stylesheet"
+    )
 
     if stdin.isatty() and args.file is None:
         parser.error("Either provide a file or pipe data to stdin")
 
-    # Read input
-    if args.file:
-        with open(args.file, "rb") as f:
-            raw = f.read()
-    else:
-        raw = stdin.buffer.read()
+    raw = read_input(stdin, args.file)
 
     xsl_params = parse_xslt_params(args.param)
 
