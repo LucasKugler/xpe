@@ -1,6 +1,6 @@
 [project]
 name = "xpe"
-version = "0.1.0"
+version = "1.2.0"
 description = "A commandline xpath tool that is easy to use"
 readme = "README.md"
 license = {text = "BSD-3-Clause"}
