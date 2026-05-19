@@ -28,6 +28,13 @@ def run():
         action="store_true",
         help="Treat stylesheet argument as inline XSLT content instead of a file path",
     )
+    parser.add_argument(
+        "-p",
+        "--param",
+        action="append",
+        metavar="NAME=VALUE",
+        help="XSLT parameter (can be used multiple times)",
+    )
     args = parser.parse_args()
 
     # Read and validate stylesheet first
@@ -81,8 +88,15 @@ def run():
     except etree.XMLSyntaxError as e:
         parser.error(f"Invalid XML: {e}")
 
+    xsl_params = {}
+    if args.param:
+        for p in args.param:
+            if "=" in p:
+                name, value = p.split("=", 1)
+                xsl_params[name] = etree.XSLT.strparam(value)
+
     try:
-        result = transform(doc)
+        result = transform(doc, **xsl_params)
     except etree.XSLTApplyError as e:
         parser.error(f"XSLT transformation failed: {e}")
 

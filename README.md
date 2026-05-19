@@ -31,6 +31,11 @@ Inline stylesheet with `-s` flag:
 
     cat input.xml | xte -s '<?xml version="1.0"?><xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"><xsl:template match="/"><out><xsl:value-of select="//item"/></out></xsl:template></xsl:stylesheet>'
 
+Stylesheet parameters with `-p` flag:
+
+    echo "<root/>" | xte -s '...' -p "myvar=hello"
+    echo "<root/>" | xte stylesheet.xsl -p "a=hello" -p "b=world"
+
 ## xve - XSD Validator
 
 xve validates XML against XSD schemas:

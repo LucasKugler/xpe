@@ -187,3 +187,54 @@ class TestXSLTFeatures:
         )
         result = run_xte(str(xsl), "<root/>")
         assert result.returncode == 0
+
+
+class TestXSLTParameters:
+    def test_single_param(self):
+        xsl = "<?xml version='1.0'?><xsl:stylesheet version='1.0' xmlns:xsl='http://www.w3.org/1999/XSL/Transform'><xsl:template match='/'><out><xsl:value-of select='$myvar'/></out></xsl:template></xsl:stylesheet>"
+        result = subprocess.run(
+            XTE + ["-s", xsl, "-p", "myvar=hello"],
+            input="<root/>",
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 0
+        assert "hello" in result.stdout
+
+    def test_multiple_params(self, tmp_path):
+        xsl_file = tmp_path / "multi.xsl"
+        xsl_file.write_text(
+            """<?xml version="1.0"?>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:template match="/">
+    <out><xsl:value-of select="concat($a, ' ', $b)"/></out>
+  </xsl:template>
+</xsl:stylesheet>"""
+        )
+        result = subprocess.run(
+            XTE + [str(xsl_file), "-p", "a=hello", "-p", "b=world"],
+            input="<root/>",
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 0
+        assert "hello world" in result.stdout
+
+    def test_param_with_file_input(self, tmp_path):
+        xsl_content = """<?xml version="1.0"?>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+  <xsl:template match="/">
+    <result><xsl:value-of select="$greeting"/></result>
+  </xsl:template>
+</xsl:stylesheet>"""
+        xsl_file = tmp_path / "param.xsl"
+        xsl_file.write_text(xsl_content)
+        xml_file = tmp_path / "input.xml"
+        xml_file.write_text("<root/>")
+        result = subprocess.run(
+            XTE + [str(xsl_file), str(xml_file), "-p", "greeting=from_file"],
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 0
+        assert "from_file" in result.stdout
