@@ -98,7 +98,12 @@ def run():
     if stdin.isatty() and args.file is None:
         parser.error("Either provide a file or pipe data to stdin")
 
-    raw = read_input(stdin, args.file)
+    try:
+        raw = read_input(stdin, args.file)
+    except FileNotFoundError:
+        parser.error(f"File not found: {args.file}")
+    except PermissionError:
+        parser.error(f"Cannot read file: {args.file}")
 
     xsl_params = parse_xslt_params(args.param)
 

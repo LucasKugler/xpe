@@ -20,11 +20,12 @@ def evaluate_xpath(xpath_expr: str, xml_data: bytes, html: bool = False) -> list
     Returns:
         List of XPath results
     """
-    parser_obj = etree.HTMLParser() if html else None
-    tree = etree.fromstring(xml_data, parser_obj)
-
     try:
+        parser_obj = etree.HTMLParser() if html else None
+        tree = etree.fromstring(xml_data, parser_obj)
         results = tree.xpath(xpath_expr)
+    except etree.XMLSyntaxError as e:
+        raise ValueError(f"Invalid XML: {e}")
     except etree.XPathEvalError:
         raise ValueError(f"Invalid XPath expression: {xpath_expr}")
 
@@ -75,7 +76,12 @@ def run():
     if stdin.isatty() and args.file is None:
         parser.error("Either provide a file or pipe data to stdin")
 
-    raw = read_input(stdin, args.file)
+    try:
+        raw = read_input(stdin, args.file)
+    except FileNotFoundError:
+        parser.error(f"File not found: {args.file}")
+    except PermissionError:
+        parser.error(f"Cannot read file: {args.file}")
 
     try:
         xpaths = evaluate_xpath(xpath, raw, args.html)
