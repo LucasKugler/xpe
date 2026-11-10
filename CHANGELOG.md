@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- OpenCode V2 plugin integration in `integration/opencode-v2/` exposing the `xml_query`, `xml_transform`, and `xml_validate` tools
+
 ## 1.2.1 - 2026-05-19
 
 ### Added
